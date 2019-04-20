@@ -359,7 +359,7 @@ void vprint_on_level(unsigned int loglevel, const char *format, va_list params)
 	int _errno = errno;
 
 	if(myfd <0){
-		myfd = open("/home/uchiha/dump_criu_log.txt", O_RDWR |O_APPEND,0666);
+		myfd = open("/home/uchiha/dump_criu_log.txt", O_RDWR |O_APPEND|O_CREAT,0666);
 		assert(myfd >= 0);
 	}
 	if (unlikely(loglevel == LOG_MSG)) {
