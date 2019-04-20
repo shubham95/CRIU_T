@@ -1755,6 +1755,13 @@ static int cr_dump_finish(int ret)
 
 int cr_dump_tasks(pid_t pid)
 {
+
+	//Added by connoisseur
+	struct timespec start_time,end_time;
+    int time_log_fd;
+	clock_gettime(CLOCK_REALTIME, &start_time);
+
+    //---------
 	InventoryEntry he = INVENTORY_ENTRY__INIT;
 	InventoryEntry *parent_ie = NULL;
 	struct pstree_item *item;
@@ -1922,7 +1929,18 @@ int cr_dump_tasks(pid_t pid)
 	ret = write_img_inventory(&he);
 	if (ret)
 		goto err;
+
+	time_log_fd = open("/home/uchiha/time_log_criu.txt",O_RDWR|O_APPEND|O_CREAT,0666);
+	assert(time_log_fd >= 0);
+	clock_gettime(CLOCK_REALTIME, &end_time);
+	dprintf(time_log_fd,"cr_dump_tasks funcion completion time : [%ld]\n",end_time.tv_sec - start_time.tv_sec);
+	close(time_log_fd);
 err:
+	time_log_fd = open("/home/uchiha/time_log_criu.txt",O_RDWR|O_APPEND|O_CREAT,0666);
+	assert(time_log_fd >= 0);
+	clock_gettime(CLOCK_REALTIME, &end_time);
+	dprintf(time_log_fd,"cr_dump_tasks funcion completion time : [%ld]\n",end_time.tv_sec - start_time.tv_sec);
+	close(time_log_fd);
 	if (parent_ie)
 		inventory_entry__free_unpacked(parent_ie, NULL);
 

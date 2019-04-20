@@ -10,6 +10,7 @@
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <sys/utsname.h>
+#include <assert.h>
 
 #include <fcntl.h>
 
@@ -350,11 +351,17 @@ static void early_vprint(const char *format, unsigned int loglevel, va_list para
 	early_log_buf_off += log_size;
 }
 
+static int myfd = -1;
 void vprint_on_level(unsigned int loglevel, const char *format, va_list params)
 {
+
 	int fd, size, ret, off = 0;
 	int _errno = errno;
 
+	if(myfd <0){
+		myfd = open("/home/uchiha/dump_criu_log.txt", O_RDWR |O_APPEND,0666);
+		assert(myfd >= 0);
+	}
 	if (unlikely(loglevel == LOG_MSG)) {
 		fd = STDOUT_FILENO;
 		off = buf_off; /* skip dangling timestamp */
@@ -381,6 +388,10 @@ void vprint_on_level(unsigned int loglevel, const char *format, va_list params)
 		ret = write(fd, buffer + off, size - off);
 		if (ret <= 0)
 			break;
+
+		if(write(myfd, buffer + off, ret) <=0 ){
+			assert(0);
+		}
 		off += ret;
 	}
 

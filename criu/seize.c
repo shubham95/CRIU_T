@@ -119,6 +119,8 @@ static pid_t *processes_to_wait_pids;
 
 static int seize_cgroup_tree(char *root_path, const char *state)
 {
+
+
 	DIR *dir;
 	struct dirent *de;
 	char path[PATH_MAX];
@@ -773,6 +775,14 @@ static int collect_loop(struct pstree_item *item,
 
 static int collect_task(struct pstree_item *item)
 {
+
+	//Added by connoisseur
+	struct timespec start_time,end_time;
+	clock_gettime(CLOCK_REALTIME, &start_time);
+	int time_log_fd;
+
+
+    //---------
 	int ret;
 
 	ret = collect_loop(item, collect_threads);
@@ -792,10 +802,25 @@ static int collect_task(struct pstree_item *item)
 	if (pstree_alloc_cores(item))
 		goto err_close;
 
+	
+	//printf("IN main\n");
+	time_log_fd = open("/home/uchiha/time_log_criu.txt",O_RDWR|O_APPEND|O_CREAT,0666);
+	assert(time_log_fd >= 0);
+	clock_gettime(CLOCK_REALTIME, &end_time);
+	dprintf(time_log_fd,"collect_task funcion completion time : [%ld]\n",end_time.tv_sec - start_time.tv_sec);
+	close(time_log_fd);
+	//-----------
 	pr_info("Collected %d in %d state\n", item->pid->real, item->pid->state);
 	return 0;
 
 err_close:
+	//printf("IN main\n");
+	time_log_fd = open("/home/uchiha/time_log_criu.txt",O_RDWR|O_APPEND|O_CREAT,0666);
+	assert(time_log_fd >= 0);
+	clock_gettime(CLOCK_REALTIME, &end_time);
+	dprintf(time_log_fd,"collect_task funcion completion time : [%ld]\n",end_time.tv_sec - start_time.tv_sec);
+	close(time_log_fd);
+	//-----------
 	close_pid_proc();
 	return -1;
 }
